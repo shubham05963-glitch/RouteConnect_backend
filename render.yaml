@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: routeconnect-backend
+    runtime: docker
+    plan: starter
+    buildCommand: docker build -t routeconnect-backend .
+    startCommand: docker run -p $PORT:8000 routeconnect-backend
+    envVars:
+      - key: ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: BACKEND_CORS_ORIGINS
+        value: https://your-frontend-domain.com
+      - key: DATABASE_URL
+        fromSecret: database_url
+      - key: JWT_SECRET
+        fromSecret: jwt_secret
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+
+databases:
+  - name: routeconnect-db
+    databaseName: routeconnect
+    user: routeconnect
+    plan: starter

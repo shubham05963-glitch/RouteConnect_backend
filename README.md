@@ -57,7 +57,36 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## Running in Production (Recommended)
 
-### Option 1: Docker (recommended for hosting)
+### Option 1: Render (Cloud Hosting)
+
+1. **Push your code to GitHub** (if not already done).
+
+2. **Connect to Render:**
+   - Go to [render.com](https://render.com) and sign up/login.
+   - Click "New +" → "Web Service".
+   - Connect your GitHub repo (`RouteConnect_backend`).
+   - Choose "Docker" as the runtime (uses your `Dockerfile`).
+
+3. **Configure Environment Variables:**
+   In Render dashboard, set these env vars:
+   - `ENV=production`
+   - `HOST=0.0.0.0`
+   - `PORT=10000` (Render assigns this automatically)
+   - `BACKEND_CORS_ORIGINS=https://your-frontend-domain.com` (replace with your frontend URL)
+   - `DATABASE_URL=postgresql://...` (from Render's managed Postgres)
+   - `JWT_SECRET=<your-secret>` (generate a new one for production)
+   - `JWT_ALGORITHM=HS256`
+   - `JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60`
+
+4. **Add a Database:**
+   - In Render, create a "PostgreSQL" service.
+   - Copy the `DATABASE_URL` from the Postgres service and paste it into your web service env vars.
+
+5. **Deploy:**
+   - Render will build from your `Dockerfile` and start the service.
+   - Your API will be live at `https://your-service-name.onrender.com`.
+
+### Option 2: Docker (recommended for hosting)
 
 ```powershell
 # build + start
@@ -66,13 +95,13 @@ docker compose up --build -d
 
 Then visit http://localhost:8000 (or the host/IP where you deployed).
 
-### Option 2: Gunicorn + Uvicorn workers
+### Option 3: Gunicorn + Uvicorn workers
 
 ```powershell
 gunicorn -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:8000 --workers 4
 ```
 
----
+Make sure `ENV=production` in `.env` and `JWT_SECRET` is strong.
 
 ## API Base URL
 
