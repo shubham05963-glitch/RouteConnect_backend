@@ -42,6 +42,11 @@ def on_startup() -> None:
     create_tables()
 
 
+@app.get("/")
+def root() -> dict:
+    return {"status": "live", "message": "RouteConnect Backend is running"}
+
+
 @app.get("/health")
 def health_check() -> dict:
     return {"status": "ok"}
