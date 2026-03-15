@@ -4,7 +4,8 @@ services:
     runtime: docker
     plan: starter
     buildCommand: docker build -t routeconnect-backend .
-    startCommand: docker run -p $PORT:8000 routeconnect-backend
+    # Render runs this inside the container; it must bind to $PORT.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4
     envVars:
       - key: ENV
         value: production
