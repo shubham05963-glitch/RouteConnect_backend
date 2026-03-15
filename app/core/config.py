@@ -1,9 +1,35 @@
+import os
+from pathlib import Path
 from typing import List
 
-from pydantic import BaseSettings, validator
+from pydantic import BaseModel, validator
 
 
-class Settings(BaseSettings):
+def load_dotenv(dotenv_path: str = ".env") -> None:
+    """Basic dotenv loader that sets env vars if not already set."""
+    env_path = Path(dotenv_path)
+    if not env_path.is_file():
+        return
+
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+# Load env vars from .env when present (dev/local use)
+load_dotenv()
+
+
+class Settings(BaseModel):
     APP_NAME: str = "RouteConnect Backend"
     ENV: str = "development"  # set to 'production' in live deployments
     DEBUG: bool = False
@@ -16,11 +42,6 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v):
         if isinstance(v, str):
@@ -28,4 +49,16 @@ class Settings(BaseSettings):
         return v
 
 
-settings = Settings()
+# Build settings from the current environment (including values loaded from .env)
+settings = Settings(
+    APP_NAME=os.getenv("APP_NAME", "RouteConnect Backend"),
+    ENV=os.getenv("ENV", "development"),
+    DEBUG=str(os.getenv("DEBUG", "False")).lower() in ("1", "true", "yes"),
+    HOST=os.getenv("HOST", "0.0.0.0"),
+    PORT=int(os.getenv("PORT", 8000)),
+    BACKEND_CORS_ORIGINS=os.getenv("BACKEND_CORS_ORIGINS", "*"),
+    DATABASE_URL=os.getenv("DATABASE_URL"),
+    JWT_SECRET=os.getenv("JWT_SECRET"),
+    JWT_ALGORITHM=os.getenv("JWT_ALGORITHM", "HS256"),
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 60)),
+)
