@@ -14,7 +14,7 @@ def create_route(
     route_in: RouteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)
 ) -> RouteRead:
     # For simplicity, we store the geometry as JSON.
-    route = Route(**route_in.dict())
+    route = Route(**route_in.model_dump())
     db.add(route)
     db.commit()
     db.refresh(route)

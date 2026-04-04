@@ -1,15 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
-from firebase_admin import credentials
 
 from app.core.config import settings
 from app.core.logging import setup_logging
-# Removed SQLAlchemy models/database engine
-from app.routers import auth, bus, crew, routes, schedule, upload
+from app.models.base import Base
+from app.models import user, bus, crew, route, schedule  # noqa: F401 — registers all tables
+from app.db.session import engine
+from app.routers import auth, bus as bus_router, crew as crew_router, routes, schedule as schedule_router, upload
 
-# Initialize Firebase Admin using Application Default Credentials or explicit path
-# Note: For production on Render, set GOOGLE_APPLICATION_CREDENTIALS in env config.
+# Create all database tables automatically on startup
+Base.metadata.create_all(bind=engine)
+
+# Initialize Firebase Admin using Application Default Credentials.
+# On Render, set GOOGLE_APPLICATION_CREDENTIALS as an environment variable.
 try:
     firebase_admin.initialize_app()
     print("Firebase Admin initialized successfully using default credentials.")
@@ -35,16 +39,18 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(crew.router)
-app.include_router(bus.router)
+app.include_router(crew_router.router)
+app.include_router(bus_router.router)
 app.include_router(routes.router)
-app.include_router(schedule.router)
-app.include_router(upload.router)  # New Cloudinary upload router
+app.include_router(schedule_router.router)
+app.include_router(upload.router)
+
 
 @app.get("/")
 def root() -> dict:
-    return {"status": "live", "message": "RouteConnect Backend (Firebase + Cloudinary) is running"}
+    return {"status": "live", "message": "RouteConnect Backend is running"}
+
 
 @app.get("/health")
 def health_check() -> dict:
-    return {"status": "ok", "db": "firebase"}
+    return {"status": "ok", "db": "postgresql"}

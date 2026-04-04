@@ -17,7 +17,7 @@ def create_bus(
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bus number already exists")
 
-    bus = Bus(**bus_in.dict())
+    bus = Bus(**bus_in.model_dump())
     db.add(bus)
     db.commit()
     db.refresh(bus)

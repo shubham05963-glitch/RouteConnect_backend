@@ -17,7 +17,7 @@ def create_crew(
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Crew member already exists")
 
-    crew = Crew(**crew_in.dict())
+    crew = Crew(**crew_in.model_dump())
     db.add(crew)
     db.commit()
     db.refresh(crew)
