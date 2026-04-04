@@ -1,21 +1,10 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from app.core.config import settings
-
-
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {},
-    future=True,
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
-
+from firebase_admin import firestore
 
 def get_db():
-    db = SessionLocal()
+    """Dependency that injects the Firestore database client instance."""
     try:
+        db = firestore.client()
         yield db
-    finally:
-        db.close()
+    except Exception as e:
+        print(f"Error connecting to Firestore: {e}")
+        raise e

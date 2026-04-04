@@ -4,13 +4,7 @@ import firebase_admin
 
 from app.core.config import settings
 from app.core.logging import setup_logging
-from app.models.base import Base
-from app.models import user, bus, crew, route, schedule  # noqa: F401 — registers all tables
-from app.db.session import engine
 from app.routers import auth, bus as bus_router, crew as crew_router, routes, schedule as schedule_router, upload
-
-# Create all database tables automatically on startup
-Base.metadata.create_all(bind=engine)
 
 # Initialize Firebase Admin using Application Default Credentials.
 # On Render, set GOOGLE_APPLICATION_CREDENTIALS as an environment variable.
