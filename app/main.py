@@ -1,16 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 import firebase_admin
+from firebase_admin import credentials
 
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.routers import auth, bus as bus_router, crew as crew_router, routes, schedule as schedule_router, upload
 
-# Initialize Firebase Admin using Application Default Credentials.
-# On Render, set GOOGLE_APPLICATION_CREDENTIALS as an environment variable.
+# Initialize Firebase Admin using Service Account or Default Credentials
 try:
-    firebase_admin.initialize_app()
-    print("Firebase Admin initialized successfully using default credentials.")
+    cred_path = os.path.join(os.path.dirname(__file__), "..", "firebase-credentials.json")
+    if os.path.exists(cred_path):
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+    else:
+        firebase_admin.initialize_app()
 except ValueError:
     print("Firebase Admin already initialized or invalid configuration.")
 

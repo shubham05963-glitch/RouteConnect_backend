@@ -1,5 +1,7 @@
 .venv/
 __pycache__/
+.venv/
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -7,3 +9,5 @@ __pycache__/
 *.sqlite3
 .env
 .env.*
+firebase-credentials.json  
+ 
