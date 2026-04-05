@@ -10,7 +10,7 @@ from app.services.ai_scheduler import generate_schedule
 router = APIRouter(prefix="/api", tags=["schedule"])
 
 @router.post("/schedule/generate", response_model=ScheduleRead)
-def generate_schedule_endpoint(db: Client = Depends(get_db)):
+def generate_schedule_endpoint(db: Client = Depends(get_db), user=Depends(get_current_user)):
     # Fetch lists from Firestore
     crew_docs = list(db.collection('crew').stream())
     bus_docs = list(db.collection('buses').stream())
@@ -46,7 +46,7 @@ def generate_schedule_endpoint(db: Client = Depends(get_db)):
 
 
 @router.get("/schedule", response_model=list[ScheduleRead])
-def list_schedules(db: Client = Depends(get_db)) -> list[ScheduleRead]:
+def list_schedules(db: Client = Depends(get_db), user=Depends(get_current_user)) -> list[ScheduleRead]:
     # Query schedules collection
     sched_ref = db.collection('schedules').order_by('generated_at', direction="DESCENDING").stream()
     sched_list = []

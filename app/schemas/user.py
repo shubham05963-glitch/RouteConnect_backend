@@ -12,7 +12,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     is_active: bool
-    is_superuser: bool
+    is_superuser: bool = False
 
     class Config:
         orm_mode = True

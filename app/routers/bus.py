@@ -9,7 +9,7 @@ from app.schemas.bus import BusCreate, BusRead
 router = APIRouter(prefix="/api/bus", tags=["bus"])
 
 @router.get("/", response_model=List[BusRead])
-def get_buses(db: Client = Depends(get_db)):
+def get_buses(db: Client = Depends(get_db), user=Depends(get_current_user)):
     buses_ref = db.collection('buses').stream()
     buses = []
     for b in buses_ref:

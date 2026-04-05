@@ -9,7 +9,7 @@ from app.schemas.route import RouteCreate, RouteRead
 router = APIRouter(prefix="/api/routes", tags=["routes"])
 
 @router.get("/", response_model=List[RouteRead])
-def get_routes(db: Client = Depends(get_db)):
+def get_routes(db: Client = Depends(get_db), user=Depends(get_current_user)):
     route_ref = db.collection('routes').stream()
     routes_list = []
     for r in route_ref:

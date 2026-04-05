@@ -41,6 +41,10 @@ class Settings(BaseModel):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    FIREBASE_DATABASE_URL: str = ""
+    RATE_LIMIT_REQUESTS: int = 120
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    REQUIRE_AUTH_FOR_READS: bool = True
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v):
@@ -61,4 +65,8 @@ settings = Settings(
     JWT_SECRET=os.getenv("JWT_SECRET"),
     JWT_ALGORITHM=os.getenv("JWT_ALGORITHM", "HS256"),
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 60)),
+    FIREBASE_DATABASE_URL=os.getenv("FIREBASE_DATABASE_URL", ""),
+    RATE_LIMIT_REQUESTS=int(os.getenv("RATE_LIMIT_REQUESTS", 120)),
+    RATE_LIMIT_WINDOW_SECONDS=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", 60)),
+    REQUIRE_AUTH_FOR_READS=str(os.getenv("REQUIRE_AUTH_FOR_READS", "true")).lower() in ("1", "true", "yes"),
 )

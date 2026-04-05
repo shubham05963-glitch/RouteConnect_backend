@@ -9,7 +9,7 @@ from app.schemas.crew import CrewCreate, CrewRead
 router = APIRouter(prefix="/api/crew", tags=["crew"])
 
 @router.get("/", response_model=List[CrewRead])
-def get_crew(db: Client = Depends(get_db)):
+def get_crew(db: Client = Depends(get_db), user=Depends(get_current_user)):
     crew_ref = db.collection('crew').stream()
     crew_list = []
     for c in crew_ref:

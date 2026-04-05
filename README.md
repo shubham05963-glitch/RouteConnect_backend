@@ -5,10 +5,11 @@ Backend service for the Automated Bus Scheduling & Route Management System.
 ## Features
 
 - REST API (FastAPI)
-- JWT authentication
-- PostgreSQL / SQLite compatible via SQLAlchemy
-- Modules for crew, buses, routes, schedules
-- AI scheduling integration point (stubbed)
+- JWT + Firebase ID-token authentication
+- Firestore-backed modules for crew, buses, routes, schedules
+- Chat API for driver/passenger dispatch messaging
+- Notifications API with role-based publishing
+- Global rate limiting + security headers + structured JSON logs
 
 ## Setup
 
@@ -45,6 +46,12 @@ DATABASE_URL=sqlite:///./routeconnect.db
 JWT_SECRET=your_secret_key
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60
+FIREBASE_DATABASE_URL=https://<your-project-id>-default-rtdb.firebaseio.com
+
+# API hardening
+RATE_LIMIT_REQUESTS=120
+RATE_LIMIT_WINDOW_SECONDS=60
+REQUIRE_AUTH_FOR_READS=true
 ```
 
 4. Run the server (development)
@@ -124,6 +131,12 @@ API endpoints are under `/api`, for example:
 - `POST /api/routes` (save route)
 - `GET /api/routes` (list routes)
 - `POST /api/schedule/generate` (generate schedule)
+- `GET /api/chat/messages` (fetch chat messages)
+- `POST /api/chat/messages` (send chat message)
+- `GET /api/notifications` (fetch notifications)
+- `POST /api/notifications` (create notification: admin/manager/dispatcher)
+- `PATCH /api/notifications/{id}/read` (mark as read)
+- `POST /api/handover` (submit driver handover report)
 
 ## API Docs
 
@@ -142,4 +155,10 @@ Interactive API docs are available at:
 - `POST /api/routes` - save route
 - `GET /api/routes` - list routes
 - `POST /api/schedule/generate` - trigger AI schedule generation (stub)
+- `GET /api/chat/messages` - list chat messages by channel
+- `POST /api/chat/messages` - create chat message
+- `GET /api/notifications` - list notifications for current role
+- `POST /api/notifications` - create notification (role-protected)
+- `PATCH /api/notifications/{id}/read` - mark notification as read
+- `POST /api/handover` - submit handover report
 
