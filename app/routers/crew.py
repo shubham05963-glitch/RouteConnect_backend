@@ -22,8 +22,13 @@ def get_crew(db: Client = Depends(get_db), user=Depends(get_current_user)):
 def create_crew(
     crew_in: CrewCreate, db: Client = Depends(get_db), user=Depends(get_current_user)
 ):
-    docs = db.collection('crew').where("license_number", "==", crew_in.license_number).stream()
-    if any(docs):
+    by_license = db.collection('crew').where("license_number", "==", crew_in.license_number).stream()
+    by_driver = (
+        db.collection('crew').where("driver_id", "==", crew_in.driver_id).stream()
+        if crew_in.driver_id
+        else []
+    )
+    if any(by_license) or any(by_driver):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Crew member already exists")
 
     doc_ref = db.collection('crew').document()
@@ -33,3 +38,15 @@ def create_crew(
     saved_data = data_to_save.copy()
     saved_data["id"] = sum(ord(ch) for ch in doc_ref.id)
     return saved_data
+
+
+@router.delete("/by-driver/{driver_id}", status_code=status.HTTP_200_OK)
+def delete_crew_by_driver_id(
+    driver_id: str, db: Client = Depends(get_db), user=Depends(get_current_user)
+):
+    docs = list(db.collection("crew").where("driver_id", "==", driver_id).stream())
+    if not docs:
+        return {"deleted": 0}
+    for d in docs:
+        d.reference.delete()
+    return {"deleted": len(docs)}

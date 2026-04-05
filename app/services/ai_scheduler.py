@@ -14,6 +14,17 @@ def parse_crew_shift(shift_str: str, base_date: datetime):
         # Default 9 to 5
         return base_date.replace(hour=9, minute=0), base_date.replace(hour=17, minute=0)
 
+
+def _driver_priority_rank(crew_member: Dict[str, Any], default_rank: int) -> int:
+    """Lower rank value means higher scheduling priority."""
+    for key in ("priority_order", "driver_order", "order", "seniority_rank"):
+        val = crew_member.get(key)
+        if isinstance(val, int):
+            return val
+        if isinstance(val, str) and val.strip().isdigit():
+            return int(val.strip())
+    return default_rank
+
 def generate_schedule(
     crew: List[Dict[str, Any]],
     buses: List[Dict[str, Any]],
@@ -46,7 +57,7 @@ def generate_schedule(
                 trips.append({
                     "id": trip_counter,
                     "route_id": route.get("id"),
-                    "route_name": route.get("name"),
+                    "route_name": route.get("route_name") or route.get("name") or str(route.get("id", "Unknown Route")),
                     "start_time": start_time,
                     "end_time": end_time
                 })
@@ -59,15 +70,17 @@ def generate_schedule(
     for b in buses:
         b["assigned_intervals"] = []  # List of tuples: (start, end)
         
-    for c in crew:
+    for index, c in enumerate(crew):
         shift_str = c.get("shift", "morning")
         st, et = parse_crew_shift(shift_str, base_date)
         c["shift_start"] = st
         c["shift_end"] = et
         c["worked_hours"] = 0.0
+        c["assigned_count"] = 0
         c["last_end_time"] = None
         c["max_work_hours"] = 8.0 # Default max hours
         c["rest_time"] = 1.0      # Mandatory rest time between shifts in hours
+        c["priority_rank"] = _driver_priority_rank(c, index + 1)
 
     assignments = []
     metadata = {
@@ -103,8 +116,8 @@ def generate_schedule(
                 selected_bus = b
                 break
 
-        # Find available crew wrapper
-        selected_crew = None
+        # Find available crew wrappers
+        eligible_crew = []
         for c in crew:
             # Rule 1: Shift must cover the trip
             if start_t < c["shift_start"] or end_t > c["shift_end"]:
@@ -119,9 +132,23 @@ def generate_schedule(
             # Rule 3: Max Hours
             if c["worked_hours"] + trip_duration > c["max_work_hours"]:
                 continue
-            
-            selected_crew = c
-            break
+
+            eligible_crew.append(c)
+
+        # Professional scheduling policy:
+        # 1) respect configured driver order/priority
+        # 2) keep fairness with lower assignment count and worked hours
+        selected_crew = None
+        if eligible_crew:
+            eligible_crew.sort(
+                key=lambda c: (
+                    c["priority_rank"],
+                    c["assigned_count"],
+                    c["worked_hours"],
+                    c["last_end_time"] or datetime.min.replace(tzinfo=timezone.utc),
+                )
+            )
+            selected_crew = eligible_crew[0]
 
         # Make the assignment if both available
         if selected_bus and selected_crew:
@@ -140,10 +167,15 @@ def generate_schedule(
             # Update Trackers
             selected_bus["assigned_intervals"].append((start_t, end_t))
             selected_crew["worked_hours"] += trip_duration
+            selected_crew["assigned_count"] += 1
             selected_crew["last_end_time"] = end_t
             metadata["successful_assignments"] += 1
         else:
             metadata["missed_trips"] += 1
+
+    metadata["driver_ordering_policy"] = (
+        "priority_order -> assigned_count -> worked_hours -> last_end_time"
+    )
 
     return {
         "assignments": assignments,
