@@ -8,3 +8,6 @@ python-jose==3.3.0
 passlib[bcrypt]==1.7.4
 pydantic>=2.0
 email-validator>=2.0
+ortools>=9.8
+geopy>=2.4
+scipy>=1.13
