@@ -4,7 +4,7 @@ from ortools.sat.python import cp_model
 from geopy.distance import geodesic
 import numpy as np
 
-def parse_crew_shift(shift_str: str, base_date: datetime):
+
     \"\"\"Parse string shift into datetime objects.\"\"\"
     shift_str = shift_str.lower()
     if "morning" in shift_str:

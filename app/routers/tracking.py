@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from geopy.distance import geodesic
 from google.cloud.firestore import Client
 from firebase_admin import db as firebase_db
 
 from app.db.session import get_db
 from app.dependencies import get_current_user
+from app.services.ai_scheduler import calculate_eta
+from app.services.delhi_map_data import DELHI_STOPS
 
 router = APIRouter(prefix="/api", tags=["tracking"])
 
@@ -47,9 +50,6 @@ def get_bus_locations(db: Client = Depends(get_db), user=Depends(get_current_use
         )
     return items
 
-
-from app.services.ai_scheduler import calculate_eta
-from app.services.delhi_map_data import DELHI_STOPS
 
 @router.get("/eta/{bus_id}/{stop_id}")
 def get_bus_eta(bus_id: str, stop_id: str, db: Client = Depends(get_db), user=Depends(get_current_user)):

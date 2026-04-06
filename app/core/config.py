@@ -37,7 +37,7 @@ class Settings(BaseModel):
     PORT: int = 8000
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
 
-    DATABASE_URL: str
+    DATABASE_URL: str = ""
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
